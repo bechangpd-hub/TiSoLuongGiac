@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ôn Tập Tỉ Số Lượng Giác - Trực Quan</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f0fdf4;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --correct: #10b981;
+            --incorrect: #ef4444;
+            --border-color: #e5e7eb;
+        }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        h1 { color: var(--primary); text-align: center; margin-bottom: 20px; font-size: 1.8rem;}
+        
+        .container { display: flex; gap: 20px; max-width: 1200px; width: 100%; flex-wrap: wrap; }
+        
+        /* Bảng điều hướng bên trái */
+        .sidebar { background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); flex: 1; min-width: 280px; max-width: 320px; height: fit-content;}
+        .sidebar h3 { margin-top: 0; text-align: center; color: var(--primary); border-bottom: 2px solid var(--border-color); padding-bottom: 10px;}
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        .grid-btn { padding: 12px 0; font-size: 15px; font-weight: bold; border: 2px solid var(--border-color); background: #f9fafb; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .grid-btn:hover { border-color: var(--primary); color: var(--primary); background: #eff6ff;}
+        .grid-btn.active { background: var(--primary); color: white; border-color: var(--primary); transform: scale(1.05); box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);}
+        .grid-btn.correct { background: var(--correct); color: white; border-color: var(--correct); }
+        .grid-btn.wrong { background: var(--incorrect); color: white; border-color: var(--incorrect); }
+
+        /* Khu vực câu hỏi chính */
+        .main-content { background: var(--card-bg); padding: 35px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); flex: 3; min-width: 300px; display: flex; flex-direction: column; }
+        #question-number { font-size: 1.2rem; color: var(--primary); font-weight: bold; margin-bottom: 15px; }
+        .question-text { font-size: 1.15rem; font-weight: 500; margin-bottom: 20px; line-height: 1.6; }
+        
+        /* Box chứa hình ảnh minh họa SVG */
+        .image-container { text-align: center; margin-bottom: 25px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1;}
+        .svg-img { max-width: 100%; height: auto; max-height: 250px; }
+
+        .options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
+        .option-btn { text-align: left; padding: 16px 20px; font-size: 1.1rem; border: 2px solid var(--border-color); background: #fff; border-radius: 10px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; }
+        .option-btn:hover:not(:disabled) { border-color: var(--primary); background: #eff6ff; transform: translateX(5px); }
+        .option-btn:disabled { cursor: not-allowed; }
+        .option-btn.selected-correct { background: var(--correct); color: white; border-color: var(--correct); font-weight: bold;}
+        .option-btn.selected-wrong { background: var(--incorrect); color: white; border-color: var(--incorrect); text-decoration: line-through;}
+        .option-btn.show-correct { border-color: var(--correct); background: #d1fae5; color: #065f46; font-weight: bold; }
+
+        /* Khung giải thích chi tiết */
+        .explanation { display: none; margin-top: 15px; padding: 25px; background: #fffbeb; border-left: 6px solid #f59e0b; border-radius: 8px; font-size: 1.05rem; line-height: 1.7; animation: slideDown 0.4s ease-out; }
+        .explanation h4 { margin: 0 0 12px 0; color: #b45309; font-size: 1.15rem;}
+        .explanation b { color: var(--primary); }
+        
+        .controls { margin-top: auto; display: flex; justify-content: space-between; padding-top: 25px; border-top: 2px solid var(--border-color); }
+        .nav-btn { padding: 12px 30px; font-size: 1rem; font-weight: bold; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .nav-btn:hover:not(:disabled) { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);}
+        .nav-btn:disabled { background: #d1d5db; color: #9ca3af; cursor: not-allowed; transform: none; box-shadow: none;}
+
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        @media (max-width: 768px) {
+            .container { flex-direction: column; }
+            .sidebar { max-width: 100%; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Trắc Nghiệm Tỉ Số Lượng Giác & Thực Tế (Toán 9)</h1>
+
+    <div class="container">
+        <div class="sidebar">
+            <h3>Bảng Câu Hỏi</h3>
+            <div class="grid" id="question-grid"></div>
+            <div style="margin-top: 20px; font-size: 0.9rem; color: #6b7280; text-align: center;">
+                <p>Màu xanh: Làm đúng</p>
+                <p>Màu đỏ: Làm sai (Có giải thích chi tiết)</p>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div id="question-number"></div>
+            <div class="question-text" id="question-text"></div>
+            
+            <div class="image-container" id="image-container" style="display: none;"></div>
+
+            <div class="options" id="options"></div>
+            
+            <div class="explanation" id="explanation">
+                <h4>Gỡ rối cho em:</h4>
+                <div id="explanation-text"></div>
+            </div>
+
+            <div class="controls">
+                <button class="nav-btn" id="prev-btn" onclick="prevQuestion()">&#8592; Câu trước</button>
+                <button class="nav-btn" id="next-btn" onclick="nextQuestion()">Câu tiếp &#8594;</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dữ liệu ngân hàng câu hỏi tích hợp hình vẽ SVG
+        const questions = [
+            {
+                id: 1,
+                text: "Cho tam giác ABC vuông tại A có góc C bằng \\( 40^\\circ \\). Thì độ dài AB là:",
+                options: ["A. \\( AB = BC \\sin 40^\\circ \\)", "B. \\( AB = AC \\sin 40^\\circ \\)", "C. \\( AB = BC \\cos 40^\\circ \\)", "D. \\( AB = AC \\cos 40^\\circ \\)"],
+                correct: 0,
+                explanation: "Trong tam giác vuông, cạnh góc vuông bằng cạnh huyền nhân với <b>Sin góc đối</b>.<br>Cạnh AB nằm đối diện với góc C (\\( 40^\\circ \\)). Cạnh dài nhất đối diện góc vuông là cạnh huyền BC.<br>Ta có: \\( \\sin C = \\frac{\\text{Đối}}{\\text{Huyền}} = \\frac{AB}{BC} \\Rightarrow AB = BC \\cdot \\sin 40^\\circ \\)."
+            },
+            {
+                id: 2,
+                text: "Cho \\( \\Delta ABC \\) vuông tại C. Biết \\( CB = 6cm, \\widehat{A} = 30^\\circ \\). Tính độ dài AB.",
+                options: ["A. \\( AB = 12cm \\)", "B. \\( AB = 3cm \\)", "C. \\( AB = 4\\sqrt{3}cm \\)", "D. \\( AB = 6\\sqrt{3}cm \\)"],
+                correct: 0,
+                explanation: "Cạnh CB nằm <b>đối diện</b> góc A. Cần tìm cạnh huyền AB.<br>Dùng công thức: \\( \\sin A = \\frac{CB}{AB} \\Rightarrow \\sin 30^\\circ = \\frac{6}{AB} \\).<br>Bấm máy tính \\( \\sin 30^\\circ = 0,5 \\). Suy ra \\( AB = 6 : 0,5 = 12cm \\)."
+            },
+            {
+                id: 3,
+                text: "Trong hình vẽ bên, \\( \\sin \\alpha \\) bằng:",
+                svg: `<svg viewBox="0 0 200 150" class="svg-img">
+                        <polygon points="50,20 50,120 130,120" fill="#f8fafc" stroke="#2563eb" stroke-width="2"/>
+                        <rect x="50" y="110" width="10" height="10" fill="none" stroke="#2563eb"/>
+                        <text x="35" y="75" font-weight="bold">4</text>
+                        <text x="85" y="140" font-weight="bold">3</text>
+                        <text x="100" y="70" font-weight="bold">5</text>
+                        <path d="M 50,40 A 20,20 0 0,0 62,35" fill="none" stroke="#ef4444"/>
+                        <text x="55" y="55" fill="#ef4444" font-weight="bold">α</text>
+                      </svg>`,
+                options: ["A. \\( \\frac{5}{3} \\)", "B. \\( \\frac{5}{4} \\)", "C. \\( \\frac{3}{5} \\)", "D. \\( \\frac{3}{4} \\)"],
+                correct: 2,
+                explanation: "Nhớ câu thần chú: <b>Sin đi học (Sin = Đối / Huyền)</b>.<br>Nhìn vào góc \\( \\alpha \\) ở trên cùng, cạnh đối diện với nó có độ dài là <b>3</b>. Cạnh dài nhất (cạnh huyền) có độ dài là <b>5</b>.<br>Vậy \\( \\sin \\alpha = \\frac{3}{5} \\)."
+            },
+            {
+                id: 4,
+                text: "Trong hình vẽ bên, \\( \\sin Q \\) bằng:",
+                svg: `<svg viewBox="0 0 200 150" class="svg-img">
+                        <polygon points="40,30 40,120 160,120" fill="none" stroke="#2563eb" stroke-width="2"/>
+                        <line x1="40" y1="120" x2="80" y2="90" stroke="#64748b" stroke-width="2" stroke-dasharray="4"/>
+                        <text x="30" y="25" font-weight="bold">P</text>
+                        <text x="30" y="135" font-weight="bold">R</text>
+                        <text x="165" y="130" font-weight="bold" fill="#ef4444">Q</text>
+                        <text x="85" y="85" font-weight="bold">S</text>
+                        <path d="M 140,120 A 20,20 0 0,1 145,108" fill="none" stroke="#ef4444"/>
+                      </svg>`,
+                options: ["A. \\( \\frac{PR}{RS} \\)", "B. \\( \\frac{PR}{QR} \\)", "C. \\( \\frac{PS}{SR} \\)", "D. \\( \\frac{SR}{QR} \\)"],
+                correct: 1,
+                explanation: "Hãy xét tam giác lớn <b>PQR</b> vuông tại P.<br>Trong tam giác này, cạnh đối diện với góc Q là cạnh <b>PR</b>. Cạnh huyền là <b>QR</b>.<br>Do đó, \\( \\sin Q = \\frac{\\text{Đối}}{\\text{Huyền}} = \\frac{PR}{QR} \\)."
+            },
+            {
+                id: 5,
+                text: "Trong hình vẽ bên, hệ thức nào trong các hệ thức sau là đúng?",
+                svg: `<svg viewBox="0 0 200 150" class="svg-img">
+                        <polygon points="100,20 30,120 170,120" fill="none" stroke="#2563eb" stroke-width="2"/>
+                        <rect x="90" y="20" width="10" height="10" transform="rotate(35 100 20)" fill="none" stroke="#2563eb"/>
+                        <text x="95" y="15" font-weight="bold">A</text>
+                        <text x="15" y="130" font-weight="bold" fill="#f59e0b">B</text>
+                        <text x="175" y="130" font-weight="bold">C</text>
+                        <text x="55" y="70" font-weight="bold">c</text>
+                        <text x="145" y="70" font-weight="bold">b</text>
+                        <text x="100" y="135" font-weight="bold">a</text>
+                      </svg>`,
+                options: ["A. \\( \\sin B = \\frac{c}{a} \\)", "B. \\( c = a \\tan C \\)", "C. \\( b = c \\tan C \\)", "D. \\( c = a \\cos B \\)"],
+                correct: 3,
+                explanation: "Tam giác ABC vuông tại A. Xét góc B:<br>- Cạnh đối: b, Cạnh kề: c, Cạnh huyền: a.<br>Công thức <b>Cos không hư (Cos = Kề / Huyền)</b>: \\( \\cos B = \\frac{c}{a} \\).<br>Nhân chéo lên ta được hệ thức đúng: \\( c = a \\cdot \\cos B \\)."
+            },
+            {
+                id: 6,
+                text: "Cho \\( \\Delta DEF \\) vuông tại D có \\( DE = 3cm ; DF = 4cm \\). Số đo góc E (làm tròn đến độ) là:",
+                options: ["A. \\( 54^\\circ \\)", "B. \\( 53^\\circ \\)", "C. \\( 52^\\circ \\)", "D. \\( 51^\\circ \\)"],
+                correct: 1,
+                explanation: "Đã biết 2 cạnh góc vuông là DE (kề góc E) và DF (đối góc E). Ta dùng Tang.<br>\\( \\tan E = \\frac{\\text{Đối}}{\\text{Kề}} = \\frac{DF}{DE} = \\frac{4}{3} \\).<br>Bấm máy tính: <code>SHIFT</code> \\( \\rightarrow \\) <code>tan</code> \\( \\rightarrow \\) <code>(4/3)</code> \\( = \\) \\( 53,13^\\circ \\). Làm tròn thành \\( 53^\\circ \\)."
+            },
+            {
+                id: 7,
+                text: "Các tia nắng mặt trời tạo với mặt đất một góc \\( 60^\\circ \\) và bóng của một tòa tháp trên mặt đất dài 20m. Khi đó chiều cao của tòa tháp bằng:",
+                svg: `<svg viewBox="0 0 200 150" class="svg-img">
+                        <line x1="20" y1="130" x2="180" y2="130" stroke="#1f2937" stroke-width="2"/>
+                        <rect x="130" y="30" width="20" height="100" fill="#9ca3af"/>
+                        <line x1="40" y1="130" x2="130" y2="30" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5"/>
+                        <text x="65" y="145" font-size="12">20m (Bóng)</text>
+                        <text x="160" y="80" font-size="12" font-weight="bold" fill="#2563eb">h = ?</text>
+                        <path d="M 60,130 A 20,20 0 0,0 55,115" fill="none" stroke="#ef4444"/>
+                        <text x="65" y="125" font-size="12" fill="#ef4444" font-weight="bold">60°</text>
+                      </svg>`,
+                options: ["A. \\( 60\\sqrt{3} \\) m", "B. \\( 10\\sqrt{3} \\) m", "C. \\( 20\\sqrt{3} \\) m", "D. \\( 30\\sqrt{3} \\) m"],
+                correct: 2,
+                explanation: "Nhìn hình vẽ: Chiều cao tháp (h) là cạnh <b>đối</b>. Bóng trên mặt đất (20m) là cạnh <b>kề</b>.<br>Dùng <b>Tang đoàn kết (Đối / Kề)</b>: \\( \\tan 60^\\circ = \\frac{h}{20} \\).<br>Suy ra: \\( h = 20 \\cdot \\tan 60^\\circ = 20\\sqrt{3} \\) (m)."
+            },
+            {
+                id: 8,
+                text: "Một con sông rộng 250m. Một chiếc đò chèo vuông góc với dòng nước, do nước chảy mạnh nên bơi 500m mới sang tới bờ bên kia. Hỏi dòng nước đã đẩy chiếc đò lệch đi một góc bằng bao nhiêu?",
+                svg: `<svg viewBox="0 0 200 150" class="svg-img">
+                        <rect x="20" y="40" width="160" height="70" fill="#e0f2fe"/>
+                        <line x1="20" y1="40" x2="180" y2="40" stroke="#0ea5e9" stroke-width="2"/>
+                        <line x1="20" y1="110" x2="180" y2="110" stroke="#0ea5e9" stroke-width="2"/>
+                        <line x1="60" y1="110" x2="60" y2="40" stroke="#64748b" stroke-width="2" stroke-dasharray="4"/>
+                        <line x1="60" y1="110" x2="140" y2="40" stroke="#2563eb" stroke-width="2"/>
+                        <text x="25" y="80" font-size="11">Rộng 250m</text>
+                        <text x="110" y="90" font-size="11" font-weight="bold" fill="#2563eb">Đi thực 500m</text>
+                        <path d="M 60,95 A 15,15 0 0,1 73,100" fill="none" stroke="#ef4444"/>
+                        <text x="65" y="125" font-size="12" fill="#ef4444" font-weight="bold">Góc lệch α?</text>
+                      </svg>`,
+                options: ["A. \\( 30^\\circ \\)", "B. \\( 45^\\circ \\)", "C. \\( 60^\\circ \\)", "D. \\( 70^\\circ \\)"],
+                correct: 2,
+                explanation: "Đường thẳng vuông góc dự định là cạnh <b>kề</b> (250m). Đường chéo thực tế đò đi là cạnh <b>huyền</b> (500m).<br>Biết Kề và Huyền, ta dùng <b>Cos</b>: \\( \\cos \\alpha = \\frac{250}{500} = \\frac{1}{2} \\).<br>Bấm máy: <code>SHIFT</code> \\( \\rightarrow \\) <code>cos</code> \\( \\rightarrow \\) <code>(1/2)</code> \\( = 60^\\circ \\)."
+            },
+            {
+                id: 9,
+                text: "Các tia nắng mặt trời tạo với mặt đất một góc xấp xỉ bằng \\( 40^\\circ \\) và bóng của một tháp trên mặt đất dài 100m. Tính chiều cao của tháp. (Kết quả làm tròn đến mét)",
+                svg: `<svg viewBox="0 0 200 150" class="svg-img">
+                        <line x1="20" y1="130" x2="180" y2="130" stroke="#1f2937" stroke-width="2"/>
+                        <polygon points="140,130 150,40 160,130" fill="#9ca3af" stroke="#4b5563"/>
+                        <line x1="40" y1="130" x2="150" y2="40" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5"/>
+                        <text x="75" y="145" font-size="12">100m (Bóng)</text>
+                        <text x="165" y="80" font-size="12" font-weight="bold" fill="#2563eb">AB = ?</text>
+                        <path d="M 60,130 A 20,20 0 0,0 55,117" fill="none" stroke="#ef4444"/>
+                        <text x="60" y="125" font-size="12" fill="#ef4444" font-weight="bold">40°</text>
+                      </svg>`,
+                options: ["A. 84m", "B. 83m", "C. 82m", "D. 81m"],
+                correct: 0,
+                explanation: "Bài này y hệt câu 7. Bóng (100m) là cạnh kề, cần tìm chiều cao tháp (cạnh đối).<br>\\( \\tan 40^\\circ = \\frac{\\text{Chiều cao}}{100} \\Rightarrow \\text{Chiều cao} = 100 \\cdot \\tan 40^\\circ \\).<br>Bấm máy ra xấp xỉ 83,9 mét. Làm tròn thành 84m."
+            },
+            {
+                id: 10,
+                text: "Một tòa nhà có chiều cao là AB. Khi tia nắng tạo với mặt đất một góc \\( \\widehat{BCA} = 55^\\circ \\) thì bóng của tòa nhà trên mặt đất có độ dài AC = 16m. Tính chiều cao AB của tòa nhà (làm tròn đến hàng đơn vị).",
+                svg: `<svg viewBox="0 0 200 150" class="svg-img">
+                        <polygon points="140,130 140,30 40,130" fill="#f1f5f9" stroke="#2563eb" stroke-width="2"/>
+                        <rect x="140" y="30" width="-20" height="100" fill="#bfdbfe"/>
+                        <text x="145" y="25" font-weight="bold">B</text>
+                        <text x="145" y="145" font-weight="bold">A</text>
+                        <text x="30" y="145" font-weight="bold">C</text>
+                        <text x="80" y="145" font-size="12">AC = 16m</text>
+                        <text x="150" y="80" font-size="12" fill="#2563eb" font-weight="bold">AB = ?</text>
+                        <path d="M 60,130 A 20,20 0 0,0 55,115" fill="none" stroke="#ef4444"/>
+                        <text x="65" y="125" font-size="12" fill="#ef4444" font-weight="bold">55°</text>
+                      </svg>`,
+                options: ["A. \\( AB \\approx 22m \\)", "B. \\( AB \\approx 21m \\)", "C. \\( AB \\approx 23m \\)", "D. \\( AB \\approx 24m \\)"],
+                correct: 2,
+                explanation: "Tam giác ABC vuông tại A. Cạnh AC (bóng) kề với góc C, cạnh AB (tòa nhà) đối diện góc C.<br>\\( \\tan 55^\\circ = \\frac{AB}{16} \\Rightarrow AB = 16 \\cdot \\tan 55^\\circ \\).<br>Tính được \\( AB \\approx 22,85 \\)m. Làm tròn hàng đơn vị ta được 23m."
+            },
+            {
+                id: 11,
+                text: "Một hồ bơi có mặt hồ là hình chữ nhật có chiều dài đường chéo BC = 16m. Góc tạo bởi đường chéo và chiều rộng BA là \\( 68^\\circ \\). Em hãy tính chiều dài AC của hồ (kết quả làm tròn chữ số thập phân thứ nhất).",
+                svg: `<svg viewBox="0 0 200 150" class="svg-img">
+                        <rect x="40" y="30" width="120" height="80" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+                        <line x1="40" y1="30" x2="160" y2="110" stroke="#ef4444" stroke-width="2" stroke-dasharray="4"/>
+                        <text x="25" y="25" font-weight="bold">B</text>
+                        <text x="25" y="125" font-weight="bold">A</text>
+                        <text x="165" y="125" font-weight="bold">C</text>
+                        <text x="110" y="60" font-size="11" fill="#ef4444" font-weight="bold">Chéo BC=16m</text>
+                        <text x="80" y="130" font-size="12" font-weight="bold" fill="#2563eb">Dài AC = ?</text>
+                        <path d="M 40,55 A 25,25 0 0,0 60,45" fill="none" stroke="#f59e0b" stroke-width="2"/>
+                        <text x="45" y="60" font-size="11" fill="#f59e0b" font-weight="bold">68°</text>
+                      </svg>`,
+                options: ["A. \\( AC \\approx 39,6m \\)", "B. \\( AC \\approx 20m \\)", "C. \\( AC \\approx 14,9m \\)", "D. \\( AC \\approx 14,8m \\)"],
+                correct: 3,
+                explanation: "Hồ chữ nhật cắt bởi đường chéo tạo thành tam giác vuông ABC tại A.<br>Đường chéo BC là cạnh <b>huyền</b> (16m). Cần tính chiều dài AC là cạnh <b>đối</b> của góc B.<br>Dùng <b>Sin</b>: \\( \\sin 68^\\circ = \\frac{AC}{16} \\Rightarrow AC = 16 \\cdot \\sin 68^\\circ \\approx 14,83 \\)m. Làm tròn 1 chữ số được 14,8m."
+            },
+            {
+                id: 12,
+                text: "Một khúc sông có chiều rộng AB = 21m. Một chiếc thuyền qua sông bị dòng nước đẩy xiên nên phải chèo quãng đường BC = 26m mới sang được bờ bên kia. Hỏi dòng nước đã đẩy chiếc thuyền lệch đi một góc \\( \\widehat{ABC} \\) bao nhiêu? (góc làm tròn đến độ)",
+                svg: `<svg viewBox="0 0 200 150" class="svg-img">
+                        <line x1="40" y1="110" x2="40" y2="30" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4"/>
+                        <line x1="40" y1="110" x2="120" y2="30" stroke="#2563eb" stroke-width="2"/>
+                        <line x1="10" y1="30" x2="180" y2="30" stroke="#0ea5e9" stroke-width="2"/>
+                        <line x1="10" y1="110" x2="180" y2="110" stroke="#0ea5e9" stroke-width="2"/>
+                        <text x="25" y="125" font-weight="bold">B</text>
+                        <text x="25" y="20" font-weight="bold">A</text>
+                        <text x="125" y="20" font-weight="bold">C</text>
+                        <text x="5" y="70" font-size="11">Rộng 21m</text>
+                        <text x="90" y="80" font-size="11" fill="#2563eb">Đi thực 26m</text>
+                        <path d="M 40,90 A 20,20 0 0,1 55,95" fill="none" stroke="#ef4444" stroke-width="2"/>
+                        <text x="45" y="125" font-size="12" fill="#ef4444" font-weight="bold">Góc B?</text>
+                      </svg>`,
+                options: ["A. \\( \\widehat{ABC} \\approx 53^\\circ \\)", "B. \\( \\widehat{ABC} \\approx 36^\\circ \\)", "C. \\( \\widehat{ABC} \\approx 54^\\circ \\)", "D. \\( \\widehat{ABC} \\approx 37^\\circ \\)"],
+                correct: 1,
+                explanation: "Tam giác ABC vuông tại A. Quãng đường dự định AB (cạnh kề) = 21m. Quãng đường thực tế đi BC (cạnh huyền) = 26m.<br>\\( \\cos B = \\frac{21}{26} \\approx 0,8077 \\).<br>Bấm máy: <code>SHIFT</code> \\( \\rightarrow \\) <code>cos</code> \\( \\rightarrow \\) <code>(21/26)</code> ra góc \\( 35,9^\\circ \\). Làm tròn thành \\( 36^\\circ \\)."
+            },
+            {
+                id: 13,
+                text: "Một máy bay từ mặt đất bay lên tạo với mặt đất một góc \\( \\widehat{DEF} = 30^\\circ \\). Hỏi sau khi bay được quãng đường EF = 10km thì khoảng cách FD của máy bay và mặt đất là bao nhiêu?",
+                svg: `<svg viewBox="0 0 200 150" class="svg-img">
+                        <polygon points="160,120 160,40 40,120" fill="none" stroke="#cbd5e1" stroke-width="2"/>
+                        <line x1="40" y1="120" x2="160" y2="40" stroke="#2563eb" stroke-width="3"/>
+                        <text x="25" y="130" font-weight="bold">E</text>
+                        <text x="165" y="130" font-weight="bold">D</text>
+                        <text x="165" y="35" font-weight="bold">F (Máy bay)</text>
+                        <text x="80" y="70" font-size="12" fill="#2563eb" font-weight="bold">Bay 10km</text>
+                        <text x="165" y="85" font-size="12" fill="#ef4444" font-weight="bold">FD = ?</text>
+                        <path d="M 70,120 A 30,30 0 0,0 65,103" fill="none" stroke="#f59e0b" stroke-width="2"/>
+                        <text x="75" y="115" font-size="12" fill="#f59e0b" font-weight="bold">30°</text>
+                      </svg>`,
+                options: ["A. \\( DF = 5\\sqrt{3}km \\)", "B. \\( DF = 5km \\)", "C. \\( DF = 10\\sqrt{3}km \\)", "D. \\( DF = 6km \\)"],
+                correct: 1,
+                explanation: "Độ cao máy bay FD (cạnh đối của góc E). Quãng đường bay chéo lên EF (cạnh huyền) = 10km.<br>Dùng <b>Sin</b>: \\( \\sin 30^\\circ = \\frac{FD}{10} \\).<br>Mà \\( \\sin 30^\\circ = 0,5 \\), do đó \\( FD = 10 \\cdot 0,5 = 5 \\)km."
+            },
+            {
+                id: 14,
+                text: "Một chiếc thang dài BC = 4m. Cần đặt chân thang cách chân tường một khoảng AC bằng bao nhiêu để nó tạo với mặt đất một góc \\( \\widehat{BCA} \\) an toàn \\( 70^\\circ \\). (kết quả làm tròn chữ số thập phân thứ nhất).",
+                svg: `<svg viewBox="0 0 200 150" class="svg-img">
+                        <line x1="140" y1="10" x2="140" y2="130" stroke="#4b5563" stroke-width="4"/>
+                        <line x1="20" y1="130" x2="160" y2="130" stroke="#4b5563" stroke-width="4"/>
+                        <line x1="60" y1="130" x2="140" y2="30" stroke="#8b5cf6" stroke-width="4"/>
+                        <text x="145" y="25" font-weight="bold">B</text>
+                        <text x="145" y="145" font-weight="bold">A</text>
+                        <text x="45" y="145" font-weight="bold">C</text>
+                        <text x="70" y="75" font-size="12" fill="#8b5cf6" font-weight="bold">Thang 4m</text>
+                        <text x="85" y="145" font-size="12" fill="#ef4444" font-weight="bold">Cách AC = ?</text>
+                        <path d="M 80,130 A 20,20 0 0,0 75,110" fill="none" stroke="#f59e0b" stroke-width="2"/>
+                        <text x="50" y="125" font-size="12" fill="#f59e0b" font-weight="bold">70°</text>
+                      </svg>`,
+                options: ["A. \\( AC \\approx 1,4m \\)", "B. \\( AC \\approx 1,3m \\)", "C. \\( AC \\approx 1,2m \\)", "D. \\( AC \\approx 1,1m \\)"],
+                correct: 0,
+                explanation: "Cạnh kề AC (khoảng cách mặt đất) và Cạnh huyền BC (chiếc thang = 4m).<br>Dùng <b>Cos</b>: \\( \\cos 70^\\circ = \\frac{AC}{4} \\Rightarrow AC = 4 \\cdot \\cos 70^\\circ \\).<br>Bấm máy: \\( 4 \\cdot 0,342 \\approx 1,368 \\)m. Làm tròn 1 chữ số thành 1,4m."
+            },
+            {
+                id: 15,
+                text: "Một khúc sông rộng khoảng 315m. Một chiếc thuyền chèo qua sông bị dòng nước đẩy xiên nên phải chèo khoảng 375m mới sang được bờ bên kia. Hỏi dòng nước đã đẩy chiếc đò lệch đi một góc \\( \\alpha \\) bằng bao nhiêu (làm tròn đến phút)?",
+                options: ["A. \\( 40^\\circ 2' \\)", "B. \\( 32^\\circ 51' \\)", "C. \\( 32^\\circ 52' \\)", "D. \\( 40^\\circ 1' \\)"],
+                correct: 2,
+                explanation: "Tương tự bài đò qua sông. Cạnh kề (bề rộng sông) = 315m. Cạnh huyền (quãng đường xiên) = 375m.<br>\\( \\cos \\alpha = \\frac{315}{375} = 0,84 \\).<br>Bấm máy <code>SHIFT</code> \\( \\rightarrow \\) <code>cos</code> \\( \\rightarrow \\) <code>0.84</code> \\( \\rightarrow \\) nút độ phút giây <code>° ' \"</code>.<br>Màn hình hiện \\( 32^\\circ 51' 35'' \\). Vì phần giây là 35 > 30 nên cộng thêm 1 vào phần phút, làm tròn thành \\( 32^\\circ 52' \\)."
+            },
+            {
+                id: 16,
+                text: "Một cây cau có chiều cao 6m. Để hái 1 buồng cau xuống, phải đặt thang tre sao cho đầu thang tre đạt độ cao đó, khi đó góc của thang tre với mặt đất là bao nhiêu? Biết thang tre dài 8m (góc làm tròn độ).",
+                svg: `<svg viewBox="0 0 200 150" class="svg-img">
+                        <polygon points="140,130 140,30 40,130" fill="none" stroke="#cbd5e1" stroke-width="2"/>
+                        <line x1="140" y1="130" x2="140" y2="30" stroke="#10b981" stroke-width="4"/>
+                        <line x1="40" y1="130" x2="140" y2="30" stroke="#8b5cf6" stroke-width="3"/>
+                        <text x="150" y="85" font-size="12" fill="#10b981" font-weight="bold">Cây 6m</text>
+                        <text x="70" y="75" font-size="12" fill="#8b5cf6" font-weight="bold">Thang 8m</text>
+                        <path d="M 60,130 A 20,20 0 0,0 55,115" fill="none" stroke="#ef4444" stroke-width="2"/>
+                        <text x="65" y="125" font-size="12" fill="#ef4444" font-weight="bold">α?</text>
+                      </svg>`,
+                options: ["A. \\( \\approx 29^\\circ \\)", "B. \\( \\approx 49^\\circ \\)", "C. \\( \\approx 39^\\circ \\)", "D. \\( \\approx 59^\\circ \\)"],
+                correct: 1,
+                explanation: "Cây cau đứng thẳng là cạnh đối (6m). Chiếc thang dựa chéo là cạnh huyền (8m).<br>Dùng <b>Sin</b>: \\( \\sin \\alpha = \\frac{6}{8} = 0,75 \\).<br>Bấm máy tính ra \\( 48,59^\\circ \\). Làm tròn thành \\( 49^\\circ \\)."
+            },
+            {
+                id: 17,
+                text: "Ca nô kéo 1 người mang dù lên không bằng 1 sợi dây dài 10 m, tạo với mặt nước biển 1 góc \\( 60^\\circ \\). Khi ca nô giảm tốc độ thì độ cao người đó giảm xuống 2m. Hỏi khi ca nô giảm tốc độ thì người đó cách mặt nước biển bao nhiêu mét (làm tròn 1 số thập phân)?",
+                options: ["A. 6m", "B. \\( 5\\sqrt{3}m \\)", "C. \\( \\approx 5,7m \\)", "D. \\( \\approx 6,7m \\)"],
+                correct: 3,
+                explanation: "<b>Bước 1:</b> Tính độ cao ban đầu (cạnh đối). Sợi dây là cạnh huyền (10m).<br>Độ cao = \\( 10 \\cdot \\sin 60^\\circ = 10 \\cdot \\frac{\\sqrt{3}}{2} = 5\\sqrt{3} \\approx 8,66 \\)m.<br><b>Bước 2:</b> Lúc sau độ cao giảm 2m.<br>Độ cao mới = \\( 8,66 - 2 = 6,66 \\)m. Làm tròn 1 chữ số thập phân là 6,7m."
+            },
+            {
+                id: 18,
+                text: "Một cây tre bị gãy ngang thân, ngọn tre vừa chạm mặt đất và tạo với mặt đất một góc \\( 30^\\circ \\). Biết khoảng cách từ vị trí ngọn tre chạm đất tới gốc cây là 4,5m. Chiều cao ban đầu của cây tre (làm tròn đến cm) là:",
+                svg: `<svg viewBox="0 0 200 150" class="svg-img">
+                        <line x1="20" y1="130" x2="180" y2="130" stroke="#1f2937" stroke-width="2"/>
+                        <line x1="140" y1="130" x2="140" y2="60" stroke="#10b981" stroke-width="4"/>
+                        <line x1="140" y1="60" x2="40" y2="130" stroke="#10b981" stroke-width="3"/>
+                        <text x="80" y="145" font-size="12" fill="#ef4444" font-weight="bold">4.5m (Kề)</text>
+                        <text x="145" y="100" font-size="11">Đoạn gốc</text>
+                        <text x="70" y="90" font-size="11">Đoạn gãy</text>
+                        <path d="M 60,130 A 20,20 0 0,0 55,120" fill="none" stroke="#f59e0b" stroke-width="2"/>
+                        <text x="65" y="125" font-size="12" fill="#f59e0b" font-weight="bold">30°</text>
+                      </svg>`,
+                options: ["A. 778 cm", "B. 770 cm", "C. 779 cm", "D. 780 cm"],
+                correct: 2,
+                explanation: "Chiều cao ban đầu của cây bằng tổng <b>Đoạn gốc đứng</b> (cạnh đối) + <b>Đoạn gãy</b> (cạnh huyền).<br>- Đoạn gốc đứng: \\( a = 4,5 \\cdot \\tan 30^\\circ \\approx 2,598 \\)m.<br>- Đoạn gãy chéo: \\( c = \\frac{4,5}{\\cos 30^\\circ} \\approx 5,196 \\)m.<br>Tổng chiều cao = \\( 2,598 + 5,196 = 7,794 \\)m = 779,4 cm. Làm tròn thành 779 cm."
+            },
+            {
+                id: 19,
+                text: "Ngọn hải đăng Tiên Nữ cao 22,1m. Một con tàu nhìn thấy ngọn hải đăng Tiên Nữ theo một góc là \\( \\alpha = 1^\\circ 15' \\). Hỏi tàu cách ngọn hải đăng bao nhiêu mét? (Làm tròn kết quả đến chữ số thập phân thứ nhất).",
+                options: ["A. 1012,8", "B. 1013,1", "C. 1012,7", "D. 1012,9"],
+                correct: 0,
+                explanation: "Đổi đơn vị: \\( 1^\\circ 15' = 1 + \\frac{15}{60} = 1,25^\\circ \\).<br>Hải đăng (cạnh đối) = 22,1m. Khoảng cách tàu đến gốc (cạnh kề) cần tìm.<br>\\( \\tan 1,25^\\circ = \\frac{22,1}{\\text{Khoảng cách}} \\Rightarrow \\text{Khoảng cách} = \\frac{22,1}{\\tan 1,25^\\circ} \\).<br>Bấm máy tính ra \\( \\approx 1012,83 \\)m. Làm tròn được 1012,8m."
+            },
+            {
+                id: 20,
+                text: "Hai chiếc thuyền A và B ở vị trí được minh họa như hình dưới đây. Tính khoảng cách giữa chúng. (làm tròn đến mét) (góc AKB = 15°).",
+                svg: `<svg viewBox="0 0 200 150" class="svg-img">
+                        <line x1="150" y1="130" x2="30" y2="130" stroke="#1f2937" stroke-width="2"/>
+                        <line x1="30" y1="130" x2="30" y2="20" stroke="#1f2937" stroke-width="2"/>
+                        <line x1="150" y1="130" x2="30" y2="70" stroke="#2563eb" stroke-width="2"/>
+                        <line x1="150" y1="130" x2="30" y2="30" stroke="#2563eb" stroke-width="2"/>
+                        <text x="20" y="145" font-weight="bold">I</text>
+                        <text x="155" y="145" font-weight="bold">K</text>
+                        <text x="15" y="75" font-weight="bold">A</text>
+                        <text x="15" y="35" font-weight="bold">B</text>
+                        <text x="80" y="145" font-size="12">IK = 380m</text>
+                        <text x="100" y="120" font-size="10">50°</text>
+                        <text x="110" y="100" font-size="10">15°</text>
+                      </svg>`,
+                options: ["A. 362 m", "B. 361 m", "C. 931 cm", "D. 362 cm"],
+                correct: 0,
+                explanation: "Có hai tam giác vuông chung cạnh kề IK = 380m: \\( \\Delta IKA \\) và \\( \\Delta IKB \\).<br>- Xét \\( \\Delta IKA \\), góc \\( K = 50^\\circ \\). Cạnh đối \\( IA = 380 \\cdot \\tan 50^\\circ \\approx 452,86 \\)m.<br>- Xét \\( \\Delta IKB \\), góc \\( K = 50^\\circ + 15^\\circ = 65^\\circ \\). Cạnh đối \\( IB = 380 \\cdot \\tan 65^\\circ \\approx 814,91 \\)m.<br>Khoảng cách giữa hai thuyền \\( AB = IB - IA = 814,91 - 452,86 = 362,05 \\)m. Làm tròn thành 362m."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let answers = new Array(questions.length).fill(null);
+
+        // Render nút bấm câu hỏi
+        const grid = document.getElementById('question-grid');
+        questions.forEach((_, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'grid-btn';
+            btn.innerText = index + 1;
+            btn.onclick = () => loadQuestion(index);
+            grid.appendChild(btn);
+        });
+
+        // Hàm load dữ liệu câu hỏi
+        function loadQuestion(index) {
+            currentQuestion = index;
+            const q = questions[index];
+            
+            document.getElementById('question-number').innerText = `Câu ${index + 1} / ${questions.length}`;
+            document.getElementById('question-text').innerHTML = q.text;
+            
+            // Xử lý hiển thị SVG
+            const imgContainer = document.getElementById('image-container');
+            if(q.svg) {
+                imgContainer.innerHTML = q.svg;
+                imgContainer.style.display = 'block';
+            } else {
+                imgContainer.style.display = 'none';
+                imgContainer.innerHTML = '';
+            }
+            
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            
+            document.getElementById('explanation').style.display = 'none';
+
+            q.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span style="font-weight:bold; width:30px;">${opt.charAt(0)}</span> ${opt.substring(2)}`;
+                
+                if (answers[index] !== null) {
+                    btn.disabled = true;
+                    if (i === q.correct) btn.classList.add('show-correct');
+                    if (answers[index] === i && i !== q.correct) btn.classList.add('selected-wrong');
+                    if (answers[index] !== q.correct) {
+                        document.getElementById('explanation').style.display = 'block';
+                        document.getElementById('explanation-text').innerHTML = q.explanation;
+                    }
+                } else {
+                    btn.onclick = () => selectOption(i);
+                }
+                optionsDiv.appendChild(btn);
+            });
+
+            updateGridUI();
+            updateButtons();
+            
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        // Xử lý khi học sinh chọn đáp án
+        function selectOption(optionIndex) {
+            answers[currentQuestion] = optionIndex;
+            loadQuestion(currentQuestion);
+        }
+
+        // Cập nhật giao diện bảng điều hướng
+        function updateGridUI() {
+            const btns = grid.getElementsByClassName('grid-btn');
+            for (let i = 0; i < btns.length; i++) {
+                btns[i].className = 'grid-btn' + (i === currentQuestion ? ' active' : '');
+                if (answers[i] !== null) {
+                    btns[i].classList.add(answers[i] === questions[i].correct ? 'correct' : 'wrong');
+                }
+            }
+        }
+
+        function updateButtons() {
+            document.getElementById('prev-btn').disabled = currentQuestion === 0;
+            document.getElementById('next-btn').disabled = currentQuestion === questions.length - 1;
+        }
+
+        function prevQuestion() { if (currentQuestion > 0) loadQuestion(currentQuestion - 1); }
+        function nextQuestion() { if (currentQuestion < questions.length - 1) loadQuestion(currentQuestion + 1); }
+
+        loadQuestion(0);
+    </script>
+</body>
+</html>
